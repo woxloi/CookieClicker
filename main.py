@@ -24,11 +24,46 @@ load_data()
 
 # アップグレードリスト（順番重要）
 UPGRADES = [
-    {"key": "click_power_1", "name": "クリック強化 Lv1", "cost": 100, "increase": 1, "requires": None},
-    {"key": "click_power_2", "name": "クリック強化 Lv2", "cost": 300, "increase": 2, "requires": "click_power_1"},
-    {"key": "click_power_3", "name": "クリック強化 Lv3", "cost": 800, "increase": 5, "requires": "click_power_2"},
-    {"key": "auto_speed_1", "name": "自動焼き速度UP Lv1", "cost": 500, "increase": 1, "requires": None},
-    {"key": "auto_speed_2", "name": "自動焼き速度UP Lv2", "cost": 1500, "increase": 2, "requires": "auto_speed_1"},
+    {
+        "key": "click_power_1",
+        "item_name": "クリック強化 Lv1",
+        "description": "クリック時のクッキー増加量が+1されます",
+        "cost": 100,
+        "increase": 1,
+        "requires": None,
+    },
+    {
+        "key": "click_power_2",
+        "item_name": "クリック強化 Lv2",
+        "description": "クリック時のクッキー増加量がさらに+2されます",
+        "cost": 300,
+        "increase": 2,
+        "requires": "click_power_1",
+    },
+    {
+        "key": "click_power_3",
+        "item_name": "クリック強化 Lv3",
+        "description": "クリック時のクッキー増加量がさらに+5されます",
+        "cost": 800,
+        "increase": 5,
+        "requires": "click_power_2",
+    },
+    {
+        "key": "auto_speed_1",
+        "item_name": "自動焼き速度UP Lv1",
+        "description": "自動で焼けるクッキーが秒毎に+1増えます",
+        "cost": 500,
+        "increase": 1,
+        "requires": None,
+    },
+    {
+        "key": "auto_speed_2",
+        "item_name": "自動焼き速度UP Lv2",
+        "description": "自動で焼けるクッキーが秒毎にさらに+2増えます",
+        "cost": 1500,
+        "increase": 2,
+        "requires": "auto_speed_1",
+    },
 ]
 
 class CookieButton(discord.ui.View):
@@ -54,12 +89,10 @@ class CookieButton(discord.ui.View):
                 }
             user = user_data[user_id]
 
-            # 一番高いクリック強化レベルの増加量を計算
             click_power = 1  # ベース
-            for upgrade in ["click_power_1", "click_power_2", "click_power_3"]:
-                if user.get(upgrade, False):
-                    # それぞれの増加量はアップグレードのincrease値をUPGRADESから取得
-                    level = next((u for u in UPGRADES if u["key"] == upgrade), None)
+            for upgrade_key in ["click_power_1", "click_power_2", "click_power_3"]:
+                if user.get(upgrade_key, False):
+                    level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
                     if level:
                         click_power += level["increase"]
 
@@ -71,11 +104,10 @@ class CookieButton(discord.ui.View):
 async def auto_bake():
     for user_id, data in user_data.items():
         if data.get("auto", True):
-            # 自動焼き速度計算
             auto_speed = 1
-            for upgrade in ["auto_speed_1", "auto_speed_2"]:
-                if data.get(upgrade, False):
-                    level = next((u for u in UPGRADES if u["key"] == upgrade), None)
+            for upgrade_key in ["auto_speed_1", "auto_speed_2"]:
+                if data.get(upgrade_key, False):
+                    level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
                     if level:
                         auto_speed += level["increase"]
             data["cookies"] = data.get("cookies", 0) + auto_speed
@@ -118,15 +150,15 @@ async def cookie(ctx, sub: str = None, *args):
 
     elif sub == "stats":
         click_power = 1
-        for upgrade in ["click_power_1", "click_power_2", "click_power_3"]:
-            if user.get(upgrade, False):
-                level = next((u for u in UPGRADES if u["key"] == upgrade), None)
+        for upgrade_key in ["click_power_1", "click_power_2", "click_power_3"]:
+            if user.get(upgrade_key, False):
+                level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
                 if level:
                     click_power += level["increase"]
         auto_speed = 1
-        for upgrade in ["auto_speed_1", "auto_speed_2"]:
-            if user.get(upgrade, False):
-                level = next((u for u in UPGRADES if u["key"] == upgrade), None)
+        for upgrade_key in ["auto_speed_1", "auto_speed_2"]:
+            if user.get(upgrade_key, False):
+                level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
                 if level:
                     auto_speed += level["increase"]
 
@@ -168,17 +200,16 @@ async def cookie(ctx, sub: str = None, *args):
     elif sub == "shop":
         msg = "**🛍️ クッキーショップ**\n"
         for upgrade in UPGRADES:
-            # 購入済みなら「購入済み」と表示
             owned = user.get(upgrade["key"], False)
             require = upgrade["requires"]
-            # 購入可能か判定（requireがNoneか、かつrequireを持っている）
             can_buy = False
             if require is None or user.get(require, False):
                 can_buy = True
             else:
                 can_buy = False
             status = "✅購入済み" if owned else ("🟢購入可能" if can_buy else "❌前アイテムを購入してください")
-            msg += f"`{upgrade['key']}`: {upgrade['name']} - 💰 {upgrade['cost']}クッキー - {status}\n"
+            msg += f"`{upgrade['key']}`: **{upgrade['item_name']}** - 💰 {upgrade['cost']}クッキー - {status}\n"
+            msg += f"    説明: {upgrade['description']}\n"
         msg += "\n`!cookie buy <item_key>` で購入できます！"
         await ctx.send(msg)
 
@@ -198,7 +229,7 @@ async def cookie(ctx, sub: str = None, *args):
 
         requires = item["requires"]
         if requires is not None and not user.get(requires, False):
-            required_name = next((u["name"] for u in UPGRADES if u["key"] == requires), requires)
+            required_name = next((u["item_name"] for u in UPGRADES if u["key"] == requires), requires)
             await ctx.send(f"❌ そのアイテムを購入するには「{required_name}」を先に買う必要があります。")
             return
 
@@ -209,7 +240,7 @@ async def cookie(ctx, sub: str = None, *args):
         user["cookies"] -= item["cost"]
         user[item_key] = True
         save_data()
-        await ctx.send(f"✅ 「{item['name']}」を購入しました！")
+        await ctx.send(f"✅ 「{item['item_name']}」を購入しました！")
 
     else:
         await ctx.send("❓ `!cookie button`, `stats`, `rank`, `off`, `on`, `shop`, `buy`, `removebutton` が使えます。")
