@@ -24,9 +24,10 @@ load_data()
 
 # アップグレードリスト（順番重要）
 UPGRADES = [
+    # クリック強化系
     {
         "key": "click_power_1",
-        "item_name": "クリック強化 Lv1",
+        "item_name": "手さばき強化 Lv1",
         "description": "クリック時のクッキー増加量が+1ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 100,
         "cost_increase_rate": 1.5,
@@ -38,7 +39,7 @@ UPGRADES = [
     },
     {
         "key": "click_power_2",
-        "item_name": "クリック強化 Lv2",
+        "item_name": "指先の極み Lv2",
         "description": "クリック時のクッキー増加量が+2ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 300,
         "cost_increase_rate": 1.5,
@@ -50,7 +51,7 @@ UPGRADES = [
     },
     {
         "key": "click_power_3",
-        "item_name": "クリック強化 Lv3",
+        "item_name": "焼き手スキルアップ Lv3",
         "description": "クリック時のクッキー増加量が+5ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 800,
         "cost_increase_rate": 1.5,
@@ -61,20 +62,72 @@ UPGRADES = [
         "auto_amount": None,
     },
     {
-        "key": "click_multiplier_2x",
-        "item_name": "クリック倍率 2倍",
-        "description": "クリック時のクッキー増加量の倍率が2倍ずつ上がります（購入回数に応じて倍率上昇）",
+        "key": "click_power_4",
+        "item_name": "クッキー拳 Lv4",
+        "description": "クリック時のクッキー増加量が+10ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 2000,
         "cost_increase_rate": 1.5,
-        "increase": 0,
+        "increase": 10,
         "requires": "click_power_3",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "click_power_5",
+        "item_name": "焼き職人の技 Lv5",
+        "description": "クリック時のクッキー増加量が+20ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 5000,
+        "cost_increase_rate": 1.5,
+        "increase": 20,
+        "requires": "click_power_4",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+
+    # クリック倍率系
+    {
+        "key": "click_multiplier_2x",
+        "item_name": "焼き力倍増器 2x",
+        "description": "クリック時のクッキー増加量の倍率が2倍ずつ上がります（購入回数に応じて倍率上昇）",
+        "base_cost": 3000,
+        "cost_increase_rate": 2.0,
+        "increase": 0,
+        "requires": "click_power_5",
         "multiplier": 2.0,
         "auto_interval": None,
         "auto_amount": None,
     },
     {
+        "key": "click_multiplier_3x",
+        "item_name": "焼き力倍増器 3x",
+        "description": "クリック時のクッキー増加量の倍率が3倍ずつ上がります（購入回数に応じて倍率上昇）",
+        "base_cost": 9000,
+        "cost_increase_rate": 2.0,
+        "increase": 0,
+        "requires": "click_multiplier_2x",
+        "multiplier": 3.0,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "click_multiplier_4x",
+        "item_name": "焼き力倍増器 4x",
+        "description": "クリック時のクッキー増加量の倍率が4倍ずつ上がります（購入回数に応じて倍率上昇）",
+        "base_cost": 20000,
+        "cost_increase_rate": 2.0,
+        "increase": 0,
+        "requires": "click_multiplier_3x",
+        "multiplier": 4.0,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+
+    # 自動焼き速度系
+    {
         "key": "auto_speed_1",
-        "item_name": "自動焼き速度UP Lv1",
+        "item_name": "オートベーカー Lv1",
         "description": "自動で焼けるクッキーが秒毎に+1ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 500,
         "cost_increase_rate": 1.5,
@@ -86,7 +139,7 @@ UPGRADES = [
     },
     {
         "key": "auto_speed_2",
-        "item_name": "自動焼き速度UP Lv2",
+        "item_name": "オートベーカー Lv2",
         "description": "自動で焼けるクッキーが秒毎に+2ずつ増えます（購入回数に応じて効果上昇）",
         "base_cost": 1500,
         "cost_increase_rate": 1.5,
@@ -97,30 +150,133 @@ UPGRADES = [
         "auto_amount": None,
     },
     {
-        "key": "auto_mode_fast",
-        "item_name": "自動高速焼きモード",
+        "key": "auto_speed_3",
+        "item_name": "オートベーカー Lv3",
+        "description": "自動で焼けるクッキーが秒毎に+5ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 4000,
+        "cost_increase_rate": 1.5,
+        "increase": 5,
+        "requires": "auto_speed_2",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+
+    # 高速自動焼きモード
+    {
+        "key": "auto_mode_fast_1",
+        "item_name": "フレイムジェット Lv1",
         "description": "0.5秒ごとに2枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
         "base_cost": 2500,
         "cost_increase_rate": 1.5,
         "increase": 0,
-        "requires": "auto_speed_2",
+        "requires": "auto_speed_3",
         "multiplier": None,
         "auto_interval": 0.5,
         "auto_amount": 2,
     },
     {
-        "key": "auto_mode_efficiency",
-        "item_name": "超効率型焼き",
+        "key": "auto_mode_fast_2",
+        "item_name": "フレイムジェット Lv2",
+        "description": "0.4秒ごとに3枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 7000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_mode_fast_1",
+        "multiplier": None,
+        "auto_interval": 0.4,
+        "auto_amount": 3,
+    },
+    {
+        "key": "auto_mode_fast_3",
+        "item_name": "フレイムジェット Lv3",
+        "description": "0.3秒ごとに5枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 15000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_mode_fast_2",
+        "multiplier": None,
+        "auto_interval": 0.3,
+        "auto_amount": 5,
+    },
+
+    # 超効率型焼きモード
+    {
+        "key": "auto_mode_efficiency_1",
+        "item_name": "プレミアムベーカリー Lv1",
         "description": "2秒ごとに10枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
         "base_cost": 3000,
         "cost_increase_rate": 1.5,
         "increase": 0,
-        "requires": "auto_mode_fast",
+        "requires": "auto_mode_fast_3",
         "multiplier": None,
         "auto_interval": 2.0,
         "auto_amount": 10,
     },
+    {
+        "key": "auto_mode_efficiency_2",
+        "item_name": "プレミアムベーカリー Lv2",
+        "description": "1.5秒ごとに15枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 7000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_mode_efficiency_1",
+        "multiplier": None,
+        "auto_interval": 1.5,
+        "auto_amount": 15,
+    },
+    {
+        "key": "auto_mode_efficiency_3",
+        "item_name": "プレミアムベーカリー Lv3",
+        "description": "1秒ごとに25枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 15000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_mode_efficiency_2",
+        "multiplier": None,
+        "auto_interval": 1.0,
+        "auto_amount": 25,
+    },
+
+    # ボーナス倍率系
+    {
+        "key": "bonus_multiplier_1",
+        "item_name": "クッキーの祝福 +10%",
+        "description": "クッキー獲得量が10%ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 1000,
+        "cost_increase_rate": 1.7,
+        "increase": 0,
+        "requires": None,
+        "multiplier": 1.1,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "bonus_multiplier_2",
+        "item_name": "クッキーの祝福 +20%",
+        "description": "クッキー獲得量が20%ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 3000,
+        "cost_increase_rate": 1.7,
+        "increase": 0,
+        "requires": "bonus_multiplier_1",
+        "multiplier": 1.2,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "bonus_multiplier_3",
+        "item_name": "クッキーの祝福 +30%",
+        "description": "クッキー獲得量が30%ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 7000,
+        "cost_increase_rate": 1.7,
+        "increase": 0,
+        "requires": "bonus_multiplier_2",
+        "multiplier": 1.3,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
 ]
+
 
 class CookieButton(discord.ui.View):
     def __init__(self):
@@ -224,7 +380,25 @@ async def cookie(ctx, sub: str = None, *args):
     if sub == "button":
         view = CookieButton()
         await ctx.send("🍪 クッキーを焼こう！下のボタンを押してね👇", view=view)
+    elif sub == "info":
+        if not args:
+            await ctx.send("❗使用方法: `/cookie info <アイテム名>`")
+            return
 
+        query = " ".join(args).lower()
+
+        for upgrade in UPGRADES:
+            # 部分一致で item_name または key を照合
+            if query in upgrade["item_name"].lower() or query in upgrade["key"].lower():
+                embed = discord.Embed(
+                    title=f"📦 {upgrade['item_name']}",
+                    description=upgrade["description"],
+                    color=discord.Color.gold()
+                )
+                await ctx.send(embed=embed)
+                return
+
+        await ctx.send("⚠️ そのアイテムは見つかりませんでした。")
     elif sub == "removebutton":
         async for msg in ctx.channel.history(limit=50):
             if msg.author == bot.user and msg.components:
@@ -302,24 +476,24 @@ async def cookie(ctx, sub: str = None, *args):
     elif sub == "shop":
         msg = "**🛍️ クッキーショップ**\n"
         for upgrade in UPGRADES:
-            count = user.get(f"{upgrade['key']}_count", 0)
-            require = upgrade["requires"]
-            can_buy = False
-            if require is None or user.get(f"{require}_count", 0) > 0:
-                can_buy = True
-            else:
-                can_buy = False
-            cost = int(upgrade["base_cost"] * (upgrade.get("cost_increase_rate", 1.0) ** count))
-            status = ""
-            if count > 0:
-                status = f"✅購入済み（レベル {count}）"
-            elif can_buy:
-                status = "🟢購入可能"
-            else:
-                status = "❌前アイテムを購入してください"
-            msg += f"`{upgrade['key']}`: **{upgrade['item_name']}** - 💰 {cost}クッキー - {status}\n"
-            msg += f"    説明: {upgrade['description']}\n"
-        msg += "\n`!cookie buy <item_key>` で購入できます！"
+            owned = user["upgrades"].get(upgrade["key"], 0)
+            requires = upgrade["requires"]
+            can_buy = requires is None or user["upgrades"].get(requires, 0) > 0
+            status = (
+                f"✅購入済（{owned}回）" if owned > 0
+                else "🟢購入可能" if can_buy
+                else "❌前提未達"
+            )
+
+            cost = int(upgrade["base_cost"] * (upgrade["cost_increase_rate"] ** owned))
+            desc = upgrade.get("description_short", "（効果不明）")
+
+            msg += (
+                f"`{upgrade['key']}`: **{upgrade['item_name']}** - 💰 {cost} - {status}\n"
+                f"  📌 {desc}\n"
+            )
+
+        msg += "\n購入: `!cookie buy <item_key>`"
         await ctx.send(msg)
 
     elif sub == "buy":
@@ -359,6 +533,7 @@ async def cookie(ctx, sub: str = None, *args):
         help_msg = (
             "❓ **クッキーボット ヘルプ**\n"
             "`!cookie button` - クッキーを焼くボタンを表示\n"
+            "`!cookie info アイテム名例(click_power_1)` - アイテムの説明を見る\n"
             "`!cookie stats` - 現在のクッキー数や能力を見る\n"
             "`!cookie rank` - クッキーランキングを表示\n"
             "`!cookie off` - 自動焼きを停止\n"
