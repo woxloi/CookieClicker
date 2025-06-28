@@ -27,42 +27,98 @@ UPGRADES = [
     {
         "key": "click_power_1",
         "item_name": "クリック強化 Lv1",
-        "description": "クリック時のクッキー増加量が+1されます",
-        "cost": 100,
+        "description": "クリック時のクッキー増加量が+1ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 100,
+        "cost_increase_rate": 1.5,
         "increase": 1,
         "requires": None,
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
     },
     {
         "key": "click_power_2",
         "item_name": "クリック強化 Lv2",
-        "description": "クリック時のクッキー増加量がさらに+2されます",
-        "cost": 300,
+        "description": "クリック時のクッキー増加量が+2ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 300,
+        "cost_increase_rate": 1.5,
         "increase": 2,
         "requires": "click_power_1",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
     },
     {
         "key": "click_power_3",
         "item_name": "クリック強化 Lv3",
-        "description": "クリック時のクッキー増加量がさらに+5されます",
-        "cost": 800,
+        "description": "クリック時のクッキー増加量が+5ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 800,
+        "cost_increase_rate": 1.5,
         "increase": 5,
         "requires": "click_power_2",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "click_multiplier_2x",
+        "item_name": "クリック倍率 2倍",
+        "description": "クリック時のクッキー増加量の倍率が2倍ずつ上がります（購入回数に応じて倍率上昇）",
+        "base_cost": 2000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "click_power_3",
+        "multiplier": 2.0,
+        "auto_interval": None,
+        "auto_amount": None,
     },
     {
         "key": "auto_speed_1",
         "item_name": "自動焼き速度UP Lv1",
-        "description": "自動で焼けるクッキーが秒毎に+1増えます",
-        "cost": 500,
+        "description": "自動で焼けるクッキーが秒毎に+1ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 500,
+        "cost_increase_rate": 1.5,
         "increase": 1,
         "requires": None,
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
     },
     {
         "key": "auto_speed_2",
         "item_name": "自動焼き速度UP Lv2",
-        "description": "自動で焼けるクッキーが秒毎にさらに+2増えます",
-        "cost": 1500,
+        "description": "自動で焼けるクッキーが秒毎に+2ずつ増えます（購入回数に応じて効果上昇）",
+        "base_cost": 1500,
+        "cost_increase_rate": 1.5,
         "increase": 2,
         "requires": "auto_speed_1",
+        "multiplier": None,
+        "auto_interval": None,
+        "auto_amount": None,
+    },
+    {
+        "key": "auto_mode_fast",
+        "item_name": "自動高速焼きモード",
+        "description": "0.5秒ごとに2枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 2500,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_speed_2",
+        "multiplier": None,
+        "auto_interval": 0.5,
+        "auto_amount": 2,
+    },
+    {
+        "key": "auto_mode_efficiency",
+        "item_name": "超効率型焼き",
+        "description": "2秒ごとに10枚ずつ自動焼きが増えます（購入回数に応じて効果上昇）",
+        "base_cost": 3000,
+        "cost_increase_rate": 1.5,
+        "increase": 0,
+        "requires": "auto_mode_fast",
+        "multiplier": None,
+        "auto_interval": 2.0,
+        "auto_amount": 10,
     },
 ]
 
@@ -78,39 +134,77 @@ class CookieButton(discord.ui.View):
         async def callback(self, interaction: discord.Interaction):
             user_id = str(interaction.user.id)
             if user_id not in user_data:
-                user_data[user_id] = {
-                    "cookies": 0,
-                    "auto": True,
-                    "click_power_1": False,
-                    "click_power_2": False,
-                    "click_power_3": False,
-                    "auto_speed_1": False,
-                    "auto_speed_2": False,
-                }
+                user_data[user_id] = default_user_data()
             user = user_data[user_id]
 
             click_power = 1  # ベース
-            for upgrade_key in ["click_power_1", "click_power_2", "click_power_3"]:
-                if user.get(upgrade_key, False):
-                    level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
-                    if level:
-                        click_power += level["increase"]
+
+            # クリック強化合計
+            for upgrade in UPGRADES:
+                if upgrade["increase"] is not None and upgrade["increase"] > 0:
+                    count = user.get(f"{upgrade['key']}_count", 0)
+                    # クリック強化だけ計算（クリック強化Lv1～3だけ加算）
+                    if upgrade["key"].startswith("click_power"):
+                        click_power += upgrade["increase"] * count
+
+            # クリック倍率系（購入回数に応じて2の累乗倍）
+            mult_upgrade = next((u for u in UPGRADES if u["key"] == "click_multiplier_2x"), None)
+            if mult_upgrade:
+                count = user.get("click_multiplier_2x_count", 0)
+                if count > 0:
+                    click_power = int(click_power * (mult_upgrade["multiplier"] ** count))
 
             user["cookies"] = user.get("cookies", 0) + click_power
             save_data()
-            await interaction.response.send_message(f"🍪 クッキーが焼けた！（+{click_power}）現在のクッキー数: {user['cookies']}", ephemeral=True)
+            await interaction.response.send_message(
+                f"🍪 クッキーが焼けた！（+{click_power}）現在のクッキー数: {user['cookies']}", ephemeral=True
+            )
 
-@tasks.loop(seconds=1.0)
+def default_user_data():
+    return {
+        "cookies": 0,
+        "auto": True,
+        "auto_interval": 1.0,
+        "auto_amount": 1,
+        "auto_timer": 0.0,
+        # 各アップグレードの購入回数を0で初期化
+        **{f"{upgrade['key']}_count": 0 for upgrade in UPGRADES},
+    }
+
+@tasks.loop(seconds=0.2)
 async def auto_bake():
     for user_id, data in user_data.items():
         if data.get("auto", True):
-            auto_speed = 1
-            for upgrade_key in ["auto_speed_1", "auto_speed_2"]:
-                if data.get(upgrade_key, False):
-                    level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
-                    if level:
-                        auto_speed += level["increase"]
-            data["cookies"] = data.get("cookies", 0) + auto_speed
+            # 自動焼きの枚数と間隔計算（購入回数に応じて増加）
+            interval = 1.0
+            amount = 0
+
+            # 自動焼き速度系アップグレードの効果を合算
+            for upgrade in UPGRADES:
+                count = data.get(f"{upgrade['key']}_count", 0)
+                if count == 0:
+                    continue
+                if upgrade["auto_interval"] is not None:
+                    # 最も短いintervalを採用（または購入回数分だけ短くできる拡張も可）
+                    # ここでは単純に購入があればそのintervalに置き換え（複数の組み合わせは後で調整可）
+                    interval = min(interval, upgrade["auto_interval"])
+                if upgrade["auto_amount"] is not None:
+                    amount += upgrade["auto_amount"] * count
+                elif upgrade["increase"] is not None:
+                    # 自動速度アップ系のincreaseは秒あたりの増加量として加算
+                    amount += upgrade["increase"] * count
+
+            # もしamountが0なら最低1枚にする（初期状態）
+            if amount == 0:
+                amount = 1
+
+            timer = data.get("auto_timer", 0.0)
+            timer += 0.2
+            if timer >= interval:
+                timer = 0.0
+                data["cookies"] = data.get("cookies", 0) + amount
+            data["auto_timer"] = timer
+
     save_data()
 
 @bot.event
@@ -122,15 +216,7 @@ async def on_ready():
 async def cookie(ctx, sub: str = None, *args):
     user_id = str(ctx.author.id)
     if user_id not in user_data:
-        user_data[user_id] = {
-            "cookies": 0,
-            "auto": True,
-            "click_power_1": False,
-            "click_power_2": False,
-            "click_power_3": False,
-            "auto_speed_1": False,
-            "auto_speed_2": False,
-        }
+        user_data[user_id] = default_user_data()
         save_data()
 
     user = user_data[user_id]
@@ -150,23 +236,39 @@ async def cookie(ctx, sub: str = None, *args):
 
     elif sub == "stats":
         click_power = 1
-        for upgrade_key in ["click_power_1", "click_power_2", "click_power_3"]:
-            if user.get(upgrade_key, False):
-                level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
-                if level:
-                    click_power += level["increase"]
-        auto_speed = 1
-        for upgrade_key in ["auto_speed_1", "auto_speed_2"]:
-            if user.get(upgrade_key, False):
-                level = next((u for u in UPGRADES if u["key"] == upgrade_key), None)
-                if level:
-                    auto_speed += level["increase"]
+        for upgrade in UPGRADES:
+            if upgrade["increase"] is not None and upgrade["increase"] > 0:
+                count = user.get(f"{upgrade['key']}_count", 0)
+                if upgrade["key"].startswith("click_power"):
+                    click_power += upgrade["increase"] * count
+
+        mult_upgrade = next((u for u in UPGRADES if u["key"] == "click_multiplier_2x"), None)
+        if mult_upgrade:
+            count = user.get("click_multiplier_2x_count", 0)
+            if count > 0:
+                click_power = int(click_power * (mult_upgrade["multiplier"] ** count))
+
+        # 自動焼きの効果を合算
+        interval = 1.0
+        amount = 0
+        for upgrade in UPGRADES:
+            count = user.get(f"{upgrade['key']}_count", 0)
+            if count == 0:
+                continue
+            if upgrade["auto_interval"] is not None:
+                interval = min(interval, upgrade["auto_interval"])
+            if upgrade["auto_amount"] is not None:
+                amount += upgrade["auto_amount"] * count
+            elif upgrade["increase"] is not None:
+                amount += upgrade["increase"] * count
+        if amount == 0:
+            amount = 1
 
         await ctx.send(
             f"📊 {ctx.author.display_name} さんのステータス\n"
             f"🍪 クッキー: {user['cookies']}\n"
             f"👆 クリック強さ: {click_power}\n"
-            f"⏱️ 自動焼き速度: {auto_speed} 秒毎にクッキー {auto_speed} 枚"
+            f"⏱️ 自動焼き: {interval}秒ごとに {amount}枚"
         )
 
     elif sub == "rank":
@@ -200,15 +302,22 @@ async def cookie(ctx, sub: str = None, *args):
     elif sub == "shop":
         msg = "**🛍️ クッキーショップ**\n"
         for upgrade in UPGRADES:
-            owned = user.get(upgrade["key"], False)
+            count = user.get(f"{upgrade['key']}_count", 0)
             require = upgrade["requires"]
             can_buy = False
-            if require is None or user.get(require, False):
+            if require is None or user.get(f"{require}_count", 0) > 0:
                 can_buy = True
             else:
                 can_buy = False
-            status = "✅購入済み" if owned else ("🟢購入可能" if can_buy else "❌前アイテムを購入してください")
-            msg += f"`{upgrade['key']}`: **{upgrade['item_name']}** - 💰 {upgrade['cost']}クッキー - {status}\n"
+            cost = int(upgrade["base_cost"] * (upgrade.get("cost_increase_rate", 1.0) ** count))
+            status = ""
+            if count > 0:
+                status = f"✅購入済み（レベル {count}）"
+            elif can_buy:
+                status = "🟢購入可能"
+            else:
+                status = "❌前アイテムを購入してください"
+            msg += f"`{upgrade['key']}`: **{upgrade['item_name']}** - 💰 {cost}クッキー - {status}\n"
             msg += f"    説明: {upgrade['description']}\n"
         msg += "\n`!cookie buy <item_key>` で購入できます！"
         await ctx.send(msg)
@@ -223,26 +332,42 @@ async def cookie(ctx, sub: str = None, *args):
             await ctx.send("❌ そのアイテムは存在しません。`!cookie shop` で確認してください。")
             return
 
-        if user.get(item_key, False):
-            await ctx.send("❌ そのアイテムはすでに購入済みです。")
-            return
+        count_key = f"{item_key}_count"
+        current_count = user.get(count_key, 0)
 
+        # 必要なアップグレードの購入回数チェック
         requires = item["requires"]
-        if requires is not None and not user.get(requires, False):
+        if requires is not None and user.get(f"{requires}_count", 0) == 0:
             required_name = next((u["item_name"] for u in UPGRADES if u["key"] == requires), requires)
             await ctx.send(f"❌ そのアイテムを購入するには「{required_name}」を先に買う必要があります。")
             return
 
-        if user["cookies"] < item["cost"]:
-            await ctx.send("💸 クッキーが足りません！")
+        cost = int(item["base_cost"] * (item.get("cost_increase_rate", 1.0) ** current_count))
+
+        if user["cookies"] < cost:
+            await ctx.send(f"💸 クッキーが足りません！必要: {cost} クッキー")
             return
 
-        user["cookies"] -= item["cost"]
-        user[item_key] = True
+        # 購入処理
+        user["cookies"] -= cost
+        user[count_key] = current_count + 1
+
         save_data()
-        await ctx.send(f"✅ 「{item['item_name']}」を購入しました！")
+        await ctx.send(f"✅ 「{item['item_name']}」をレベル {user[count_key]} に上げました！ 次回は {int(cost * item.get('cost_increase_rate', 1.0))} クッキーです。")
 
     else:
-        await ctx.send("❓ `!cookie button`, `stats`, `rank`, `off`, `on`, `shop`, `buy`, `removebutton` が使えます。")
+        help_msg = (
+            "❓ **クッキーボット ヘルプ**\n"
+            "`!cookie button` - クッキーを焼くボタンを表示\n"
+            "`!cookie stats` - 現在のクッキー数や能力を見る\n"
+            "`!cookie rank` - クッキーランキングを表示\n"
+            "`!cookie off` - 自動焼きを停止\n"
+            "`!cookie on` - 自動焼きを再開\n"
+            "`!cookie shop` - ショップ一覧を見る\n"
+            "`!cookie buy <item_key>` - アイテムを購入\n"
+            "`!cookie removebutton` - ボタン付きメッセージを削除\n"
+            "`!cookie help` - このヘルプを表示\n"
+        )
+        await ctx.send(help_msg)
 
-bot.run("YOUR_BOT_TOKEN")
+bot.run("")
